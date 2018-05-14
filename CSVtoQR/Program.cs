@@ -24,10 +24,9 @@ namespace CSVtoQR
         private const int pageHight = 842;
         private const int pageWidth = 595;
 
-
+        // the first line is the header
         static void Main(string[] args)
         {
-            Console.WriteLine("1");
             IEnumerable<Row> rows;
 
             using (var reader = new StreamReader(sourceFile))
@@ -44,11 +43,12 @@ namespace CSVtoQR
                 {
                     var writer = PdfWriter.GetInstance(document, stream);
                     document.Open();
-                    var pdfContentByte = writer.DirectContent;
+                    var pdf = writer.DirectContent;
                     var font = FontFactory.GetFont(fontName, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED).GetCalculatedBaseFont(false);
 
                     int x = leftMargin, y = pageHight - topMargin;
-                    foreach(var row in rows) {
+                    foreach (var row in rows)
+                    {
                         if (x >= pageWidth - columnWidth)
                         {
                             x = leftMargin;
@@ -60,11 +60,11 @@ namespace CSVtoQR
                             document.NewPage();
                         }
 
-                        pdfContentByte.SetFontAndSize(font, 32);
-                        ShowText(pdfContentByte, x, y, row.header);
-                        pdfContentByte.SetFontAndSize(font, 18);
-                        AddQRCode(pdfContentByte, x, y - 120, row.qr, qrSize);
-                        ShowText(pdfContentByte, x, y - 150, row.qr);
+                        pdf.SetFontAndSize(font, 32);
+                        pdf.ShowText(x, y, row.header);
+                        pdf.SetFontAndSize(font, 18);
+                        pdf.AddQRCode(x, y - 120, row.qr, qrSize);
+                        pdf.ShowText(x, y - 150, row.qr);
 
                         x += columnWidth;
                     }
@@ -75,20 +75,6 @@ namespace CSVtoQR
                     w.Write(stream.ToArray());
                 }
             }
-        }
-
-        private static void ShowText(PdfContentByte pdfContentByte, float x, float y, string text, int alignment = Element.ALIGN_LEFT)
-        {
-            pdfContentByte.BeginText();
-            pdfContentByte.ShowTextAligned(alignment, text, x, y, 0);
-            pdfContentByte.EndText();
-        }
-
-        private static void AddQRCode(PdfContentByte pdfContentByte, float x, float y, string text, int size)
-        {
-            var image =  new BarcodeQRCode(text, size, size, null).GetImage();
-            image.SetAbsolutePosition(x, y);
-            pdfContentByte.AddImage(image);
         }
     }
 
@@ -102,8 +88,25 @@ namespace CSVtoQR
     {
         public RowMap()
         {
-            Map(x => x.header).Index(0);
-            Map(x => x.qr).Index(1);
+            Map(r => r.header).Index(0);
+            Map(r => r.qr).Index(1);
+        }
+    }
+
+    static class Extensions
+    {
+        public static void ShowText(this PdfContentByte pdfContentByte, float x, float y, string text, int alignment = Element.ALIGN_LEFT)
+        {
+            pdfContentByte.BeginText();
+            pdfContentByte.ShowTextAligned(alignment, text, x, y, 0);
+            pdfContentByte.EndText();
+        }
+
+        public static void AddQRCode(this PdfContentByte pdfContentByte, float x, float y, string text, int size)
+        {
+            var image = new BarcodeQRCode(text, size, size, null).GetImage();
+            image.SetAbsolutePosition(x, y);
+            pdfContentByte.AddImage(image);
         }
     }
 }
