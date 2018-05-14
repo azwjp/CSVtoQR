@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="iTextSharp" Version="5.5.13" />
-    <PackageReference Include="ZXing.Net" Version="0.16.4" />
   </ItemGroup>
 
 </Project>

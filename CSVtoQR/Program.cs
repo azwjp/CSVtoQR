@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CSVtoQR
 {
@@ -13,6 +12,7 @@ namespace CSVtoQR
     {
         private static string outputFile = "qr.pdf";
         private static string fontName = "Arial";
+        private static int qrSize = 100;
 
         static void Main(string[] args)
         {
@@ -29,10 +29,8 @@ namespace CSVtoQR
                     pdfContentByte.SetFontAndSize(font, 32);
                     ShowText(pdfContentByte, 20, 800, "01");
                     pdfContentByte.SetFontAndSize(font, 18);
-                    ShowText(pdfContentByte, 20, 750, "QR Code");
+                    AddQRCode(pdfContentByte, 20, 750, "text", qrSize);
                     ShowText(pdfContentByte, 20, 650, "URL");
-
-                    document.Close();
                 }
 
                 using (BinaryWriter w = new BinaryWriter(File.OpenWrite(outputFile)))
@@ -41,11 +39,19 @@ namespace CSVtoQR
                 }
             }
         }
-        private static void ShowText(PdfContentByte pdfContentByte, float x, float y, string text, int alignment = Element.ALIGN_LEFT, float rotaion = 0)
+
+        private static void ShowText(PdfContentByte pdfContentByte, float x, float y, string text, int alignment = Element.ALIGN_LEFT)
         {
             pdfContentByte.BeginText();
-            pdfContentByte.ShowTextAligned(alignment, text, x, y, rotaion);
+            pdfContentByte.ShowTextAligned(alignment, text, x, y, 0);
             pdfContentByte.EndText();
+        }
+
+        private static void AddQRCode(PdfContentByte pdfContentByte, float x, float y, string text, int size)
+        {
+            var image =  new BarcodeQRCode(text, size, size, null).GetImage();
+            image.SetAbsolutePosition(x, y);
+            pdfContentByte.AddImage(image);
         }
     }
 }
